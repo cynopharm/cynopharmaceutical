@@ -1,1 +1,1 @@
-# cynopharmaceutical
+# cynopharma
