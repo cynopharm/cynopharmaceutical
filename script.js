@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // All Products
     const products = [
        
-        { name: "Fesulf by 1000", image: "images/fesulf.jpg" },
+        
         { name: "Panadol Extra Caplet", image: "images/panadol_extra_caplet.jpg" },
         { name: "Panadol Caplet", image: "images/panadol_caplet.jpg" },
         { name: "Unitrim Tablet", image: "images/unitrim_tablet.jpg" },
@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
         { name: "Tetrakris Tetracycline Capsule", image: "images/tetrakris_tetracycline_capsule.jpg" },
         { name: "Tanzol Tablets", image: "images/tanzol_tablets.jpg" },
         { name: "Cipronol-TN", image: "images/cipronol_tn.jpg" },
+        { name: "Fesulf by 1000", image: "images/fesulf.jpg" },
         { name: "Fesulf by 50", image: "images/fesulf_50.jpg" },
         { name: "Maxiquine Tablets", image: "images/maxiquine_tablets.jpg" },
         { name: "Bonduretic Tablets", image: "images/bonduretic_tablets.jpg" },
@@ -241,8 +242,18 @@ document.addEventListener("DOMContentLoaded", function () {
             button.addEventListener("click", function () {
                 let index = this.dataset.index;
                 let cart = JSON.parse(localStorage.getItem("cart")) || [];
-                cart.push(products[index]);
+                
+                // Check if product already exists in cart
+                let existingProduct = cart.find(item => item.name === products[index].name);
+                if (existingProduct) {
+                    existingProduct.quantity += 1;
+                } else {
+                    let newProduct = { ...products[index], quantity: 1 };
+                    cart.push(newProduct);
+                }
+
                 localStorage.setItem("cart", JSON.stringify(cart));
+                updateCartDisplay();
                 updateCartCount();
                 alert(`${products[index].name} added to cart!`);
             });
@@ -252,56 +263,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Display Cart Items
-    if (cartItems) {
-        let cart = JSON.parse(localStorage.getItem("cart")) || [];
-        if (cart.length === 0) {
-            cartItems.innerHTML = "<p>Your cart is empty.</p>";
-        } else {
-            cart.forEach((product, index) => {
-                let cartDiv = document.createElement("div");
-                cartDiv.classList.add("cart-item");
-                cartDiv.innerHTML = `
-                    <img src="${product.image}" alt="${product.name}">
-                    <h3>${product.name}</h3>
-                    <button class="remove-from-cart" data-index="${index}">Remove</button>
-                `;
-                cartItems.appendChild(cartDiv);
-            });
-
-            // Add event listener to remove buttons
-            document.querySelectorAll(".remove-from-cart").forEach(button => {
-                button.addEventListener("click", function () {
-                    let index = this.dataset.index;
-                    let cart = JSON.parse(localStorage.getItem("cart")) || [];
-                    cart.splice(index, 1);
-                    localStorage.setItem("cart", JSON.stringify(cart));
-                    updateCartDisplay();
-                    updateCartCount();
-                });
-            });
-        }
-    }
-
-    // Send to Admin (WhatsApp)
-    if (sendToAdmin) {
-        sendToAdmin.addEventListener("click", function () {
-            let cart = JSON.parse(localStorage.getItem("cart")) || [];
-            if (cart.length === 0) {
-                alert("Your cart is empty.");
-                return;
-            }
-            let message = "Order Details:\n";
-            cart.forEach(product => {
-                message += `✅ ${product.name}\n`;
-            });
-            window.location.href = `https://wa.me/2348065892171?text=${encodeURIComponent(message)}`;
-        });
-    }
-
     function updateCartDisplay() {
         if (cartItems) {
-            cartItems.innerHTML = ""; // Clear cart
+            cartItems.innerHTML = ""; // Clear cart display
             let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
             if (cart.length === 0) {
                 cartItems.innerHTML = "<p>Your cart is empty.</p>";
             } else {
@@ -311,12 +277,45 @@ document.addEventListener("DOMContentLoaded", function () {
                     cartDiv.innerHTML = `
                         <img src="${product.image}" alt="${product.name}">
                         <h3>${product.name}</h3>
+                        <div class="quantity-controls">
+                            <button class="decrease" data-index="${index}">-</button>
+                            <span>${product.quantity}</span>
+                            <button class="increase" data-index="${index}">+</button>
+                        </div>
                         <button class="remove-from-cart" data-index="${index}">Remove</button>
                     `;
                     cartItems.appendChild(cartDiv);
                 });
 
-                // Add event listener again after reloading cart
+                // Increase quantity
+                document.querySelectorAll(".increase").forEach(button => {
+                    button.addEventListener("click", function () {
+                        let index = this.dataset.index;
+                        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+                        cart[index].quantity += 1;
+                        localStorage.setItem("cart", JSON.stringify(cart));
+                        updateCartDisplay();
+                        updateCartCount();
+                    });
+                });
+
+                // Decrease quantity
+                document.querySelectorAll(".decrease").forEach(button => {
+                    button.addEventListener("click", function () {
+                        let index = this.dataset.index;
+                        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+                        if (cart[index].quantity > 1) {
+                            cart[index].quantity -= 1;
+                        } else {
+                            cart.splice(index, 1);
+                        }
+                        localStorage.setItem("cart", JSON.stringify(cart));
+                        updateCartDisplay();
+                        updateCartCount();
+                    });
+                });
+
+                // Remove from cart
                 document.querySelectorAll(".remove-from-cart").forEach(button => {
                     button.addEventListener("click", function () {
                         let index = this.dataset.index;
@@ -331,41 +330,55 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Update Cart Count
     function updateCartCount() {
         let cart = JSON.parse(localStorage.getItem("cart")) || [];
-        if (cartCount) cartCount.textContent = cart.length;
+        let totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        if (cartCount) cartCount.textContent = totalItems;
     }
-});
 
-document.addEventListener("DOMContentLoaded", function () {
+    // Send to Admin (WhatsApp)
+    if (sendToAdmin) {
+        sendToAdmin.addEventListener("click", function () {
+            let cart = JSON.parse(localStorage.getItem("cart")) || [];
+            if (cart.length === 0) {
+                alert("Your cart is empty.");
+                return;
+            }
+            let message = "Order Details:\n";
+            cart.forEach(product => {
+                message += `✅ ${product.name} (x${product.quantity})\n`;
+            });
+            window.location.href = `https://wa.me/2348065892171?text=${encodeURIComponent(message)}`;
+        });
+    }
+
+    // Initialize Cart Display
+    updateCartDisplay();
+    updateCartCount();
+
+    // Slideshow
     let index = 0;
     const slides = document.querySelector(".slides");
 
     function nextSlide() {
-        index = (index + 1) % 3; // Cycle through 3 images
+        index = (index + 1) % 3;
         slides.style.transform = `translateX(-${index * 100}%)`;
     }
+    setInterval(nextSlide, 3000);
 
-    setInterval(nextSlide, 3000); // Change slide every 3 seconds
-});
-
-document.addEventListener("DOMContentLoaded", function () {
+    // Search Bar
     const searchBar = document.getElementById("search-bar");
-
     if (searchBar) {
         searchBar.addEventListener("input", function () {
             const searchTerm = searchBar.value.toLowerCase();
             const productDivs = document.querySelectorAll(".product");
-
             productDivs.forEach((productDiv) => {
                 const productName = productDiv.querySelector("h3").textContent.toLowerCase();
-
-                if (productName.includes(searchTerm)) {
-                    productDiv.style.display = "block"; // Show matching products
-                } else {
-                    productDiv.style.display = "none"; // Hide non-matching products
-                }
+                productDiv.style.display = productName.includes(searchTerm) ? "block" : "none";
             });
         });
     }
 });
+
+
