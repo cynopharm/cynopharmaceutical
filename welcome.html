@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Cyno Pharmacy</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="welcome-page">
+    <div class="welcome-container">
+        <img src="images/pharmacy_welcome.jpg" alt="Welcome Image" class="welcome-image">
+        <h1>Welcome to Cyno Pharmaceuticals Ltd</h1>
+        <p>Your trusted pharmacy for quality healthcare products.</p>
+        <button id="enter-site">Enter</button>
+    </div>
+
+    <script>
+        document.getElementById("enter-site").addEventListener("click", function() {
+            localStorage.setItem("visitedWelcome", "true"); 
+            window.location.href = "index.html"; 
+        });
+    </script>
+</body>
+</html>

@@ -41,5 +41,12 @@
     
 
     <script src="script.js"></script>
+    <script>
+        if (!localStorage.getItem("visitedWelcome")) {
+            window.location.href = "welcome.html"; 
+        }
+    </script>
+    
+
 </body>
 </html>
