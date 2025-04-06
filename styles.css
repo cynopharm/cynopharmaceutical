@@ -279,8 +279,8 @@ button#enter-site:hover {
 
  /* ✅ Simple Footer */
  .site-footer {
-    background-color:rgb(50, 50, 216);
-    color: white;
+    background-color:rgb(143, 143, 158);
+    color: black;
     text-align: center;
     padding: 15px 10px;
     font-size: 14px;
